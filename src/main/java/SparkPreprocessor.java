@@ -11,9 +11,8 @@ import org.apache.spark.sql.types.DataTypes;
 import java.util.List;
 
 public class SparkPreprocessor {
-    public static Dataset<Row> readFromCSV(List<String> pathList)
+    public static Dataset<Row> readFromCSV(List<String> pathList,String CSVROOT)
     {
-        String CSVROOT =  "/home/lime/IdeaProjects/CryptoAnalysis/BTCUSDT_15m_data/";
         // 1. Create a SparkConf object (optional, but recommended for configuration)
         SparkConf sparkConf = new SparkConf()
                 .setAppName("MySparkApp")

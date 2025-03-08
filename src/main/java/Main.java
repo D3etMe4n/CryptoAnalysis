@@ -9,7 +9,7 @@ public class Main {
         //BinanceDataDownloader.DownloadData();
 
         String path = "/home/lime/IdeaProjects/CryptoAnalysis/BTCUSDT_15m_data/";
-        Dataset<Row> Dataframe = SparkPreprocessor.readFromCSV(getFileName(path));
+        Dataset<Row> Dataframe = SparkPreprocessor.readFromCSV(getFileName(path), path);
         System.out.println("This is the final dataframe");
         Dataframe.show();
     }
