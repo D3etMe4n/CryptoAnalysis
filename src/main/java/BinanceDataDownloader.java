@@ -99,7 +99,7 @@ public class BinanceDataDownloader {
         bos.close();
     }
 
-    public static void main(String[] args) {
+    public static void DownloadData() {
         // Example usage
         BinanceDataDownloader downloader = new BinanceDataDownloader("klines", "BTCUSDT", "15m");
         try {
