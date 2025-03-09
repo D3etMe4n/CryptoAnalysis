@@ -21,6 +21,11 @@
             <artifactId>spark-sql_2.12</artifactId> <!-- Use 2.13 if you have Scala 2.13 -->
             <version>3.4.1</version>  <!-- Use the latest Spark version -->
         </dependency>
+        <dependency>
+            <groupId>org.duckdb</groupId>
+            <artifactId>duckdb_jdbc</artifactId>
+            <version>1.2.0</version>
+        </dependency>
     </dependencies>
     
 </project>

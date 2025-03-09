@@ -12,6 +12,9 @@ public class Main {
         Dataset<Row> Dataframe = SparkPreprocessor.readFromCSV(getFileName(path), path);
         System.out.println("This is the final dataframe");
         Dataframe.show();
+
+        SparkPreprocessor.ToDWH(Dataframe);
+
     }
 
     private static List<String> getFileName(String path)
