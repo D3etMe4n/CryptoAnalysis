@@ -8,8 +8,11 @@ public class Main {
     public static void main(String[] args) {
         //BinanceDataDownloader.DownloadData();
 
-        String path = "/home/lime/IdeaProjects/CryptoAnalysis/BTCUSDT_15m_data/";
-        Dataset<Row> Dataframe = SparkPreprocessor.readFromCSV(getFileName(path), path);
+        final String PROJECT_DIR = System.getProperty("user.dir");
+        final String DWH_DIR =  PROJECT_DIR + "/duckdb/";
+        final String CSV_DIR = PROJECT_DIR + "/BTCUSDT_15m_data/";
+
+        Dataset<Row> Dataframe = SparkPreprocessor.readFromCSV(getFileName(CSV_DIR), CSV_DIR);
         System.out.println("This is the final dataframe");
         Dataframe.show();
 
