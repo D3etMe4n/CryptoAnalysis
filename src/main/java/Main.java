@@ -6,7 +6,7 @@ import org.apache.spark.sql.Row;
 
 public class Main {
     public static void main(String[] args) {
-        //BinanceDataDownloader.DownloadData();
+        BinanceDataDownloader.DownloadData();
 
         final String PROJECT_DIR = System.getProperty("user.dir");
         final String DWH_DIR =  PROJECT_DIR + "/duckdb/";
