@@ -10,7 +10,7 @@ import {
   Legend,
   TimeScale,
 } from 'chart.js';
-import { CandlestickController, CandlestickElement } from 'chartjs-chart-financial'; // Changed import
+import { CandlestickController, CandlestickElement } from 'chartjs-chart-financial';
 import { Chart } from 'react-chartjs-2';
 import axios from 'axios';
 import 'chartjs-adapter-date-fns';
@@ -26,7 +26,7 @@ ChartJS.register(
   Tooltip,
   Legend,
   zoomPlugin,
-  CandlestickController, // Added this
+  CandlestickController,
   CandlestickElement
 );
 
@@ -39,24 +39,16 @@ const CandlestickChart = () => {
         const data = response.data.slice(0, 100);
 
         setChartData({
-          labels: data.map(item => new Date(item.open_time)),
-          datasets: [
-            {
-              label: 'BTCUSDT',
-              data: data.map(item => ({
-                x: new Date(item.open_time),
-                o: parseFloat(item.open_price),
-                h: parseFloat(item.high),
-                l: parseFloat(item.low),
-                c: parseFloat(item.close)
-              })),
-              borderColor: '#000000',
-              color: {
-                up: '#00ff00',
-                down: '#ff0000',
-              }
-            }
-          ]
+          datasets: [{
+            label: 'BTCUSDT',
+            data: data.map(item => ({
+              x: new Date(item.open_time),
+              o: parseFloat(item.open_price),
+              h: parseFloat(item.high),
+              l: parseFloat(item.low),
+              c: parseFloat(item.close)
+            }))
+          }]
         });
       })
       .catch(error => {
@@ -66,6 +58,7 @@ const CandlestickChart = () => {
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: 'top',
@@ -95,6 +88,8 @@ const CandlestickChart = () => {
         type: 'time',
         time: {
           unit: 'minute',
+          minUnit: 'minute',
+          stepSize: 1,
           displayFormats: {
             minute: 'HH:mm'
           }
@@ -102,7 +97,9 @@ const CandlestickChart = () => {
         ticks: {
           source: 'auto',
           maxRotation: 45,
-          minRotation: 45
+          minRotation: 45,
+          autoSkip: true,
+          maxTicksLimit: 10
         }
       },
       y: {
@@ -112,6 +109,21 @@ const CandlestickChart = () => {
           text: 'Price (USDT)'
         }
       }
+    },
+    datasets: {
+      candlestick: {
+        color: {
+          up: '#26a69a',
+          down: '#ef5350',
+        },
+        borderColor: {
+          up: '#26a69a',
+          down: '#ef5350',
+        },
+        width: 1,
+        barPercentage: 0.08, // Adjust this value to make the candlesticks thinner
+        categoryPercentage: 0.8
+      }
     }
   };
 
@@ -120,7 +132,8 @@ const CandlestickChart = () => {
       <div style={{ 
         marginBottom: '20px', 
         width: '1000px',
-        height: '600px'
+        height: '600px',
+        padding: '20px'
       }}>
         {chartData ? (
           <Chart
