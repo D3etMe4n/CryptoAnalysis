@@ -103,7 +103,7 @@ const CandlestickChart = () => {
         }
       },
       y: {
-        position: 'right',
+        position: 'left',
         title: {
           display: true,
           text: 'Price (USDT)'
@@ -121,8 +121,8 @@ const CandlestickChart = () => {
           down: '#ef5350',
         },
         width: 1,
-        barPercentage: 0.08, // Adjust this value to make the candlesticks thinner
-        categoryPercentage: 0.8
+        barPercentage: 0.25, // Adjust this value to make the candlesticks thinner
+        categoryPercentage: 0.25
       }
     }
   };
