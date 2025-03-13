@@ -7,10 +7,13 @@ import {
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  TimeScale,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import axios from 'axios';
+import 'chartjs-adapter-date-fns';
+import zoomPlugin from 'chartjs-plugin-zoom';
 
 // Register ChartJS components
 ChartJS.register(
@@ -18,9 +21,11 @@ ChartJS.register(
   LinearScale,
   PointElement,
   LineElement,
+  TimeScale,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  zoomPlugin
 );
 
 const LineChart = () => {
@@ -30,15 +35,13 @@ const LineChart = () => {
     // Fetch data from the backend
     axios.get('http://localhost:8000/binance_data')
       .then(response => {
-        const data = response.data;
-        const labels = data.map(item => new Date(item.open_time).toLocaleDateString());
+        const data = response.data.slice(0, 100); // Fetch a smaller subset of data
+
+        // Data for line chart
+        const labels = data.map(item => new Date(item.open_time));
         const openPrices = data.map(item => item.open_price);
         const closePrices = data.map(item => item.close);
-        
-        console.log('Labels:', labels);
-        console.log('Open Prices:', openPrices);
-        console.log('Close Prices:', closePrices);
-        
+
         setChartData({
           labels,
           datasets: [
@@ -62,7 +65,7 @@ const LineChart = () => {
       });
   }, []);
 
-  const options = {
+  const lineOptions = {
     responsive: true,
     plugins: {
       legend: {
@@ -70,12 +73,59 @@ const LineChart = () => {
       },
       title: {
         display: true,
-        text: 'Binance Data Chart',
+        text: 'Line Chart',
       },
     },
+    scales: {
+      x: {
+        type: 'time',
+        time: {
+          unit: 'minute',
+          stepSize: 30,
+          displayFormats: {
+            minute: 'HH:mm'
+          },
+        },
+        ticks: {
+          source: 'auto',
+          autoSkip: true,  // Changed to true to allow proper tick spacing
+          maxTicksLimit: 10, // Limit the number of ticks to prevent overcrowding
+          maxRotation: 45,  // Allow rotation for better readability
+          minRotation: 45,  // Rotate labels for better fit
+          callback: function(value) {
+            const date = new Date(value);
+            return date.toLocaleTimeString([], { 
+              hour: '2-digit', 
+              minute: '2-digit',
+              hour12: true // Ensures AM/PM format
+            });
+          }
+        }
+      },
+      y: {
+        title: {
+          display: true,
+          text: 'Price (USDT)'
+        }
+      }
+    }
   };
 
-  return chartData ? <Line options={options} data={chartData} /> : <p>Loading...</p>;
+  return (
+    <div>
+      <div style={{ marginBottom: '20px', width: '1000px' }}>
+        {chartData ? (
+          <Line
+            options={lineOptions}
+            data={chartData}
+            id="lineChart"
+          />
+        ) : (
+          <p>Loading line chart...</p>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default LineChart;

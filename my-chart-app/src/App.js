@@ -1,13 +1,12 @@
-import logo from './logo.svg';
-import './App.css';
 import React from 'react';
 import LineChart from './components/LineChart';
+import CandlestickChart from './components/CandlestickChart';
 
 function App() {
   return (
-    <div style={{ width: '800px', margin: '0 auto' }}>
-      <h1>My Chart Example</h1>
+    <div className="App">
       <LineChart />
+      <CandlestickChart />
     </div>
   );
 }
