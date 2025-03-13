@@ -44,7 +44,7 @@ class BinanceData(BaseModel):
 async def read_binance_data(
     start_time: Optional[int] = None,
     end_time: Optional[int] = None,
-    limit: int = 100,
+    limit: int = 10000,
     offset: int = 0
 ):
     """
