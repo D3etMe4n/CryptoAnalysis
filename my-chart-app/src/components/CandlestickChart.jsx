@@ -31,31 +31,51 @@ function CandlestickChart() {
         borderColor: '#d1d1d1',
         timeVisible: true,
       },
-      rightPriceScale: {
-        borderColor: '#d1d1d1',
-      },
     });
 
-    // Add candlestick series
+    // Add candlestick series with its own price scale
     const candleSeries = chart.addCandlestickSeries({
       upColor: '#26a69a',
       downColor: '#ef5350',
       borderVisible: false,
       wickUpColor: '#26a69a',
       wickDownColor: '#ef5350',
+      priceScaleId: 'right',
     });
 
-    // Add volume series
+    // Add volume series with a separate price scale
     const volumeSeries = chart.addHistogramSeries({
-      color: '#26a69a',
       priceFormat: {
         type: 'volume',
       },
-      priceScaleId: '',
+      priceScaleId: 'volume',
       scaleMargins: {
         top: 0.8,
         bottom: 0,
       },
+    });
+
+    // Configure the volume price scale
+    chart.priceScale('volume').applyOptions({
+      scaleMargins: {
+        top: 0.8, // Position volume at the bottom 20% of the chart
+        bottom: 0,
+      },
+      visible: true,
+      borderVisible: true,
+      borderColor: '#d1d1d1',
+      textColor: '#888888',
+      autoScale: true,
+    });
+
+    // Configure the main price scale
+    chart.priceScale('right').applyOptions({
+      scaleMargins: {
+        top: 0.1, // Leave some space at the top
+        bottom: 0.2, // This space is for the volume chart
+      },
+      borderColor: '#d1d1d1',
+      visible: true,
     });
 
     // Save references
@@ -116,41 +136,41 @@ function CandlestickChart() {
     setError(null);
 
     try {
- // Fixed time range: from 2017 to Dec 31, 2024
- const startDate = new Date('2017-01-01').getTime();
- const endDate = new Date('2024-12-31T23:59:59').getTime();
- let queryStartTime;
+      // Fixed time range: from 2017 to Dec 31, 2024
+      const startDate = new Date('2017-01-01').getTime();
+      const endDate = new Date('2024-12-31T23:59:59').getTime();
+      let queryStartTime;
 
- switch (timeRange) {
-   case '1d':
-     queryStartTime = endDate - 24 * 60 * 60 * 1000;
-     break;
-   case '7d':
-     queryStartTime = endDate - 7 * 24 * 60 * 60 * 1000;
-     break;
-   case '1m':
-     queryStartTime = endDate - 30 * 24 * 60 * 60 * 1000;
-     break;
-   case '3m':
-     queryStartTime = endDate - 90 * 24 * 60 * 60 * 1000;
-     break;
-   case 'all':
-     // Use complete dataset from 2017
-     queryStartTime = startDate;
-     break;
-   default:
-     queryStartTime = endDate - 24 * 60 * 60 * 1000;
- }
+      switch (timeRange) {
+        case '1d':
+          queryStartTime = endDate - 24 * 60 * 60 * 1000;
+          break;
+        case '7d':
+          queryStartTime = endDate - 7 * 24 * 60 * 60 * 1000;
+          break;
+        case '1m':
+          queryStartTime = endDate - 30 * 24 * 60 * 60 * 1000;
+          break;
+        case '3m':
+          queryStartTime = endDate - 90 * 24 * 60 * 60 * 1000;
+          break;
+        case 'all':
+          // Use complete dataset from 2017
+          queryStartTime = startDate;
+          break;
+        default:
+          queryStartTime = endDate - 24 * 60 * 60 * 1000;
+      }
 
- console.log(`Fetching data from ${new Date(queryStartTime).toISOString()} to ${new Date(endDate).toISOString()}`);
+      console.log(`Fetching data from ${new Date(queryStartTime).toISOString()} to ${new Date(endDate).toISOString()}`);
 
- const response = await axios.get('http://localhost:8000/binance_data/', {
-   params: {
-     start_time: queryStartTime,
-     end_time: endDate,  // Fixed end date instead of current time
-     limit: 10000,   // Increased limit for more data points
-   },
- });
+      const response = await axios.get('http://localhost:8000/binance_data/', {
+        params: {
+          start_time: queryStartTime,
+          end_time: endDate,  // Fixed end date instead of current time
+          limit: 10000,   // Increased limit for more data points
+        },
+      });
 
       console.log(`Received ${response.data?.length} data points`);
 
@@ -184,6 +204,8 @@ function CandlestickChart() {
         if (candleSeriesRef.current && volumeSeriesRef.current) {
           candleSeriesRef.current.setData(candlestickData);
           volumeSeriesRef.current.setData(volumeData);
+          
+          // Add a visual separator between price and volume
           chartRef.current.timeScale().fitContent();
         }
       } else {
