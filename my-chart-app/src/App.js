@@ -1,6 +1,7 @@
 import React from 'react';
 import LineChart from './components/LineChart';
 import CandlestickChart from './components/CandlestickChart';
+import CryptoAnalysisPanel from './components/CryptoAnalysisPanel';
 import './App.css';
 
 function App() {
@@ -15,6 +16,9 @@ function App() {
         </div>
         <div className="chart-container">
           <CandlestickChart />
+        </div>
+        <div className="chart-container">
+          <CryptoAnalysisPanel />
         </div>
       </main>
     </div>

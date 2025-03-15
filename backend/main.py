@@ -1,11 +1,17 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 import duckdb
 from typing import Optional, List
-from pydantic import BaseModel
 import traceback
 import time
 from datetime import datetime
+from pydantic import BaseModel
+from datetime import datetime, timedelta
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import pandas as pd
+import numpy as np
+import gc
 
 app = FastAPI()
 
@@ -298,3 +304,216 @@ async def price_summary(timeframe: str = "7d"):
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         conn.close()
+
+class AnalysisRequest(BaseModel):
+    timeframe: str = "7d"  # Default to 7 days
+    
+class AnalysisResponse(BaseModel):
+    analysis: str
+    timeframe: str
+    generated_at: str
+    execution_time: float
+
+@app.post("/crypto_analysis/", response_model=AnalysisResponse)
+async def generate_crypto_analysis(request: AnalysisRequest, background_tasks: BackgroundTasks):
+    """Generate AI analysis of crypto data for specified timeframe"""
+    start_time = time.time()
+    
+    try:
+        # Use the same fixed date approach that works in the charts
+        endDate = int(datetime(2024, 12, 31, 23, 59, 59).timestamp() * 1000)
+        startDate = int(datetime(2017, 1, 1).timestamp() * 1000)
+        
+        if request.timeframe == "1d":
+            start_time_ms = endDate - 24 * 60 * 60 * 1000
+            period_desc = "last 24 hours"
+        elif request.timeframe == "3d":
+            start_time_ms = endDate - 3 * 24 * 60 * 60 * 1000
+            period_desc = "last 3 days"
+        elif request.timeframe == "7d":
+            start_time_ms = endDate - 7 * 24 * 60 * 60 * 1000
+            period_desc = "last 7 days"
+        else:
+            # Default to 24 hours if invalid timeframe
+            start_time_ms = endDate - 24 * 60 * 60 * 1000
+            period_desc = "last 24 hours"
+            request.timeframe = "1d"
+        
+        # Query data from DuckDB with the fixed date approach
+        conn = get_db_connection()
+        
+        query = f"""
+        SELECT 
+            open_time,
+            open_price,
+            high,
+            low,
+            close,
+            volume
+        FROM BinanceData
+        WHERE open_time >= {start_time_ms} AND open_time <= {endDate}
+        ORDER BY open_time
+        """
+        
+        print(f"Executing query for AI analysis: {query}")
+        df = conn.execute(query).fetchdf()
+        conn.close()
+        
+        if df.empty:
+            raise HTTPException(status_code=404, detail="No data available for selected timeframe")
+        
+        # Convert timestamps to datetime
+        df['open_time'] = df['open_time'].apply(lambda x: datetime.fromtimestamp(x/1000))
+        
+        # Prepare data for AI analysis
+        df['return'] = df['close'].pct_change()
+        
+        # Check if we have enough data
+        if len(df) < 10:
+            raise HTTPException(status_code=400, detail="Insufficient data for meaningful analysis")
+        
+        # Generate AI analysis
+        analysis = run_ai_model(df, period_desc)
+        
+        # Add cleanup task to run in background after response is sent
+        background_tasks.add_task(cleanup_gpu_memory)
+        
+        end_time = time.time()
+        execution_time = end_time - start_time
+        
+        return {
+            "analysis": analysis,
+            "timeframe": request.timeframe,
+            "generated_at": datetime.now().isoformat(),
+            "execution_time": execution_time
+        }
+        
+    except Exception as e:
+        print(f"Error in generate_crypto_analysis: {e}")
+        traceback.print_exc()
+        # Ensure cleanup happens even if there's an error
+        cleanup_gpu_memory()
+        raise HTTPException(status_code=500, detail=str(e))
+
+def run_ai_model(df, period_desc):
+    """Run the AI model on the provided data and return analysis"""
+    try:
+        # Clear any existing GPU memory
+        torch.cuda.empty_cache()
+        
+        # Check if CUDA is available
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        print(f"Using device: {device}")
+        
+        # Load model and tokenizer
+        tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B")
+        model = AutoModelForCausalLM.from_pretrained(
+            "Qwen/Qwen2.5-0.5B",
+            trust_remote_code=True,
+            torch_dtype=torch.float16
+        ).to(device)
+        
+        # Prepare the summary statistics
+        stats = {
+            "start_price": df['open_price'].iloc[0],
+            "end_price": df['close'].iloc[-1],
+            "price_change": df['close'].iloc[-1] - df['open_price'].iloc[0],
+            "price_change_pct": (df['close'].iloc[-1] / df['open_price'].iloc[0] - 1) * 100,
+            "max_price": df['high'].max(),
+            "min_price": df['low'].min(),
+            "avg_price": df['close'].mean(),
+            "volatility": df['return'].std() * 100,  # Standard deviation of returns as percentage
+            "total_volume": df['volume'].sum(),
+            "avg_volume": df['volume'].mean()
+        }
+        
+        # Create prompt with data summary rather than raw data to save tokens
+        instruction_prompt = f"""
+        You are a senior financial analyst specializing in cryptocurrency markets. Analyze the following Bitcoin trading data for the {period_desc} and provide a comprehensive professional analysis of the market trends, risks, and price predictions. Your response should be structured as follows:
+
+        1. **Market Overview**:
+           - Summarize the overall trend observed in the provided data.
+           - Highlight any significant price movements, volatility patterns, or anomalies.
+
+        2. **Technical Analysis**:
+           - Identify key technical indicators based on the data.
+           - Discuss support and resistance levels.
+           - Assess whether the current trend suggests bullish, bearish, or neutral momentum.
+
+        3. **Risk Assessment**:
+           - Evaluate potential risks in the market based on the data.
+           - Consider factors such as volatility and liquidity.
+           - Provide a risk rating (Low, Medium, High) with justification.
+
+        4. **Price Prediction**:
+           - Based on the observed trends, predict the short-term price movements.
+           - Include confidence levels for your predictions.
+
+        5. **Trading Recommendations**:
+           - Suggest actionable trading strategies (e.g., buy/sell signals, stop-loss levels).
+           - Justify your recommendations with data-driven reasoning.
+           
+        6. **Conclusion**:
+           - Summarize your findings in a concise paragraph.
+
+        Data Summary for Analysis:
+        - Time Period: {df['open_time'].min().strftime('%Y-%m-%d %H:%M')} to {df['open_time'].max().strftime('%Y-%m-%d %H:%M')}
+        - Starting Price: ${stats['start_price']:.2f}
+        - Ending Price: ${stats['end_price']:.2f}
+        - Price Change: ${stats['price_change']:.2f} ({stats['price_change_pct']:.2f}%)
+        - Highest Price: ${stats['max_price']:.2f}
+        - Lowest Price: ${stats['min_price']:.2f}
+        - Average Price: ${stats['avg_price']:.2f}
+        - Volatility (Std Dev of Returns): {stats['volatility']:.2f}%
+        - Total Trading Volume: {stats['total_volume']:.2f}
+        - Average Daily Volume: {stats['avg_volume']:.2f}
+
+        Provide your analysis in a professional tone, suitable for investors and traders. Ensure all insights are data-driven.
+        """
+        
+        # Tokenize the input
+        inputs = tokenizer(instruction_prompt, return_tensors="pt", max_length=1024, truncation=True).to(device)
+        
+        # Generate the output
+        with torch.no_grad():
+            outputs = model.generate(
+                inputs["input_ids"],
+                max_length=2048,  
+                num_beams=3,
+                early_stopping=True
+            )
+        
+        # Decode the output and remove the input prompt
+        response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        
+        # Clean up the response to remove the prompt
+        if "Data Summary for Analysis:" in response:
+            response = response.split("Data Summary for Analysis:")[1]
+            # Find the actual start of the analysis after the stats
+            analysis_markers = ["Market Overview", "1.", "Analysis:", "Based on"]
+            for marker in analysis_markers:
+                if marker in response:
+                    response = response[response.find(marker):]
+                    break
+        
+        return response.strip()
+        
+    except Exception as e:
+        print(f"Error running AI model: {e}")
+        traceback.print_exc()
+        return f"An error occurred while generating the analysis: {str(e)}"
+    finally:
+        # Clean up resources
+        if 'model' in locals():
+            del model
+        if 'tokenizer' in locals():
+            del tokenizer
+        torch.cuda.empty_cache()
+
+def cleanup_gpu_memory():
+    """Clean up GPU memory after model usage"""
+    print("Cleaning up GPU memory...")
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        print(f"GPU memory after cleanup: {torch.cuda.memory_allocated(0) / 1024 ** 2:.2f} MB")
