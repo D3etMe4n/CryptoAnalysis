@@ -10,6 +10,7 @@ function CandlestickChart() {
   const chartRef = useRef(null);
   const candleSeriesRef = useRef(null);
   const volumeSeriesRef = useRef(null);
+  const [endDate, setEndDate] = useState(new Date('2024-12-31'));
 
   // Function to create chart
   const createChartInstance = () => {
@@ -119,12 +120,12 @@ function CandlestickChart() {
     };
   }, []);
 
-  // Fetch data when time range changes
+  // Fetch data when time range changes or end date changes
   useEffect(() => {
     if (chartRef.current) {
       fetchData();
     }
-  }, [timeRange]);
+  }, [timeRange, endDate]);
 
   const fetchData = async () => {
     if (!chartRef.current || !candleSeriesRef.current || !volumeSeriesRef.current) {
@@ -136,38 +137,53 @@ function CandlestickChart() {
     setError(null);
 
     try {
-      // Fixed time range: from 2017 to Dec 31, 2024
+      // Use the selected end date
+      const endDateTime = endDate.getTime();
       const startDate = new Date('2017-01-01').getTime();
-      const endDate = new Date('2024-12-31T23:59:59').getTime();
       let queryStartTime;
 
       switch (timeRange) {
         case '1d':
-          queryStartTime = endDate - 24 * 60 * 60 * 1000;
+          queryStartTime = endDateTime - 24 * 60 * 60 * 1000;
           break;
         case '7d':
-          queryStartTime = endDate - 7 * 24 * 60 * 60 * 1000;
+          queryStartTime = endDateTime - 7 * 24 * 60 * 60 * 1000;
           break;
         case '1m':
-          queryStartTime = endDate - 30 * 24 * 60 * 60 * 1000;
+          queryStartTime = endDateTime - 30 * 24 * 60 * 60 * 1000;
           break;
         case '3m':
-          queryStartTime = endDate - 90 * 24 * 60 * 60 * 1000;
+          queryStartTime = endDateTime - 90 * 24 * 60 * 60 * 1000;
+          break;
+        case '6m':
+          queryStartTime = endDateTime - 180 * 24 * 60 * 60 * 1000;
+          break;
+        case '1y':
+          queryStartTime = endDateTime - 365 * 24 * 60 * 60 * 1000;
+          break;
+        case '2y':
+          queryStartTime = endDateTime - 2 * 365 * 24 * 60 * 60 * 1000;
+          break;
+        case '3y':
+          queryStartTime = endDateTime - 3 * 365 * 24 * 60 * 60 * 1000;
+          break;
+        case '5y':
+          queryStartTime = endDateTime - 5 * 365 * 24 * 60 * 60 * 1000;
           break;
         case 'all':
           // Use complete dataset from 2017
           queryStartTime = startDate;
           break;
         default:
-          queryStartTime = endDate - 24 * 60 * 60 * 1000;
+          queryStartTime = endDateTime - 24 * 60 * 60 * 1000;
       }
 
-      console.log(`Fetching data from ${new Date(queryStartTime).toISOString()} to ${new Date(endDate).toISOString()}`);
+      console.log(`Fetching data from ${new Date(queryStartTime).toISOString()} to ${new Date(endDateTime).toISOString()}`);
 
       const response = await axios.get('http://localhost:8000/binance_data/', {
         params: {
           start_time: queryStartTime,
-          end_time: endDate,  // Fixed end date instead of current time
+          end_time: endDateTime,
           limit: 10000,   // Increased limit for more data points
         },
       });
@@ -224,41 +240,88 @@ function CandlestickChart() {
     setTimeRange(range);
   };
 
+  const handleEndDateChange = (e) => {
+    setEndDate(new Date(e.target.value));
+  };
+
   return (
     <div className="candlestick-chart-container">
       <h2>BTC/USDT Candlestick Chart</h2>
 
-      <div className="time-range-buttons">
-        <button
-          className={timeRange === '1d' ? 'active' : ''}
-          onClick={() => handleTimeRangeChange('1d')}
-        >
-          1D
-        </button>
-        <button
-          className={timeRange === '7d' ? 'active' : ''}
-          onClick={() => handleTimeRangeChange('7d')}
-        >
-          7D
-        </button>
-        <button
-          className={timeRange === '1m' ? 'active' : ''}
-          onClick={() => handleTimeRangeChange('1m')}
-        >
-          1M
-        </button>
-        <button
-          className={timeRange === '3m' ? 'active' : ''}
-          onClick={() => handleTimeRangeChange('3m')}
-        >
-          3M
-        </button>
-        <button
-          className={timeRange === 'all' ? 'active' : ''}
-          onClick={() => handleTimeRangeChange('all')}
-        >
-          All Time
-        </button>
+      <div className="chart-controls">
+        <div className="date-selector">
+          <label htmlFor="candle-end-date">End Date:</label>
+          <input 
+            type="date" 
+            id="candle-end-date" 
+            value={endDate.toISOString().split('T')[0]} 
+            onChange={handleEndDateChange}
+            max={new Date().toISOString().split('T')[0]}
+          />
+        </div>
+
+        <div className="time-range-buttons">
+          <button
+            className={timeRange === '1d' ? 'active' : ''}
+            onClick={() => handleTimeRangeChange('1d')}
+          >
+            1D
+          </button>
+          <button
+            className={timeRange === '7d' ? 'active' : ''}
+            onClick={() => handleTimeRangeChange('7d')}
+          >
+            7D
+          </button>
+          <button
+            className={timeRange === '1m' ? 'active' : ''}
+            onClick={() => handleTimeRangeChange('1m')}
+          >
+            1M
+          </button>
+          <button
+            className={timeRange === '3m' ? 'active' : ''}
+            onClick={() => handleTimeRangeChange('3m')}
+          >
+            3M
+          </button>
+          <button
+            className={timeRange === '6m' ? 'active' : ''}
+            onClick={() => handleTimeRangeChange('6m')}
+          >
+            6M
+          </button>
+          <button
+            className={timeRange === '1y' ? 'active' : ''}
+            onClick={() => handleTimeRangeChange('1y')}
+          >
+            1Y
+          </button>
+          <button
+            className={timeRange === '2y' ? 'active' : ''}
+            onClick={() => handleTimeRangeChange('2y')}
+          >
+            2Y
+          </button>
+          <button
+            className={timeRange === '3y' ? 'active' : ''}
+            onClick={() => handleTimeRangeChange('3y')}
+          >
+            3Y
+          </button>
+          <button
+            className={timeRange === '5y' ? 'active' : ''}
+            onClick={() => handleTimeRangeChange('5y')}
+          >
+            5Y
+          </button>
+          <button
+            className={timeRange === 'all' ? 'active' : ''}
+            onClick={() => handleTimeRangeChange('all')}
+          >
+            All
+          </button>
+        </div>
       </div>
 
       {loading && <div className="loading">Loading chart data...</div>}

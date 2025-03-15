@@ -9,6 +9,10 @@ function CryptoAnalysisPanel() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [generatedAt, setGeneratedAt] = useState(null);
+  
+  // Default end date set to Dec 31, 2024
+  const defaultEndDate = new Date(2024, 11, 31); // Month is 0-indexed
+  const [endDate, setEndDate] = useState(defaultEndDate);
 
   const handleAnalysisRequest = async () => {
     setLoading(true);
@@ -16,7 +20,8 @@ function CryptoAnalysisPanel() {
     
     try {
       const response = await axios.post('http://localhost:8000/crypto_analysis/', {
-        timeframe: timeRange
+        timeframe: timeRange,
+        end_date: endDate.toISOString() // Send ISO format date
       });
       
       // Format the markdown to ensure proper rendering
@@ -52,6 +57,10 @@ function CryptoAnalysisPanel() {
   const handleTimeRangeChange = (range) => {
     setTimeRange(range);
   };
+  
+  const handleEndDateChange = (e) => {
+    setEndDate(new Date(e.target.value));
+  };
 
   // Custom components for markdown rendering
   const components = {
@@ -77,25 +86,38 @@ function CryptoAnalysisPanel() {
       <h2>Bitcoin Market Analysis</h2>
       
       <div className="analysis-controls">
-        <div className="time-range-buttons">
-          <button
-            className={timeRange === '1d' ? 'active' : ''}
-            onClick={() => handleTimeRangeChange('1d')}
-          >
-            24 Hours
-          </button>
-          <button
-            className={timeRange === '3d' ? 'active' : ''}
-            onClick={() => handleTimeRangeChange('3d')}
-          >
-            3 Days
-          </button>
-          <button
-            className={timeRange === '7d' ? 'active' : ''}
-            onClick={() => handleTimeRangeChange('7d')}
-          >
-            7 Days
-          </button>
+        <div className="analysis-settings">
+          <div className="time-range-buttons">
+            <button
+              className={timeRange === '1d' ? 'active' : ''}
+              onClick={() => handleTimeRangeChange('1d')}
+            >
+              24 Hours
+            </button>
+            <button
+              className={timeRange === '3d' ? 'active' : ''}
+              onClick={() => handleTimeRangeChange('3d')}
+            >
+              3 Days
+            </button>
+            <button
+              className={timeRange === '7d' ? 'active' : ''}
+              onClick={() => handleTimeRangeChange('7d')}
+            >
+              7 Days
+            </button>
+          </div>
+          
+          <div className="date-selector">
+            <label htmlFor="analysis-end-date">End Date:</label>
+            <input 
+              type="date" 
+              id="analysis-end-date" 
+              value={endDate.toISOString().split('T')[0]} 
+              onChange={handleEndDateChange}
+              max={new Date().toISOString().split('T')[0]}
+            />
+          </div>
         </div>
         
         <button 

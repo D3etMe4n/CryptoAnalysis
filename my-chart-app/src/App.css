@@ -66,3 +66,45 @@
   border-radius: 4px;
   text-align: left;
 }
+
+.date-selector {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.date-selector label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+}
+
+.date-selector input[type="date"] {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.chart-controls {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+/* For better mobile responsiveness */
+@media (min-width: 768px) {
+  .chart-controls {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+/* Make the time range buttons wrap nicely */
+.time-range-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}

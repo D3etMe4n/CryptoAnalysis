@@ -198,3 +198,52 @@
     margin-bottom: 20px;
     border-left: 5px solid #c62828;
   }
+
+  .analysis-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  @media (min-width: 768px) {
+    .analysis-settings {
+      flex-direction: row;
+      align-items: center;
+      gap: 20px;
+    }
+  }
+  
+  .date-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .date-selector label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+  }
+  
+  .date-selector input[type="date"] {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  /* Update analysis-controls to add better spacing */
+  .analysis-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  
+  @media (min-width: 768px) {
+    .analysis-controls {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+  }

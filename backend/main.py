@@ -319,9 +319,19 @@ async def generate_crypto_analysis(request: AnalysisRequest, background_tasks: B
     """Generate AI analysis of crypto data for specified timeframe"""
     start_time = time.time()
     
+        # Use provided end date or default to Dec 31, 2024
+        
     try:
+        if request.end_date:
+            try:
+                end_date_obj = datetime.fromisoformat(request.end_date.replace('Z', '+00:00'))
+                endDate = int(end_date_obj.timestamp() * 1000)
+            except ValueError:
+                # If invalid date format, use default
+                endDate = int(datetime(2024, 12, 31, 23, 59, 59).timestamp() * 1000)
+        else:
+            endDate = int(datetime(2024, 12, 31, 23, 59, 59).timestamp() * 1000)
         # Use the same fixed date approach that works in the charts
-        endDate = int(datetime(2024, 12, 31, 23, 59, 59).timestamp() * 1000)
         startDate = int(datetime(2017, 1, 1).timestamp() * 1000)
         
         if request.timeframe == "1d":
