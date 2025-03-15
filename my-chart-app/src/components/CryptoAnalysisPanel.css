@@ -87,22 +87,94 @@
     color: #333;
   }
   
-  .analysis-text h1, 
-  .analysis-text h2, 
+  .analysis-text h1 {
+    font-size: 1.8em;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+    color: #222;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.3em;
+  }
+  
+  .analysis-text h2 {
+    font-size: 1.5em;
+    margin-top: 0.8em;
+    margin-bottom: 0.4em;
+    color: #222;
+  }
+  
   .analysis-text h3 {
-    margin-top: 20px;
-    margin-bottom: 10px;
+    font-size: 1.2em;
+    margin-top: 0.7em;
+    margin-bottom: 0.3em;
     color: #222;
   }
   
   .analysis-text p {
-    margin-bottom: 15px;
+    margin-bottom: 1em;
   }
   
   .analysis-text ul, 
   .analysis-text ol {
-    margin-bottom: 15px;
-    padding-left: 20px;
+    margin-bottom: 1em;
+    padding-left: 1.5em;
+  }
+  
+  .analysis-text li {
+    margin-bottom: 0.3em;
+  }
+
+  .analysis-text table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1em;
+  }
+
+  .analysis-text table th,
+  .analysis-text table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+
+  .analysis-text table th {
+    background-color: #f2f2f2;
+  }
+
+  .analysis-text table tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+
+  .analysis-text blockquote {
+    border-left: 4px solid #4285f4;
+    padding-left: 1em;
+    margin-left: 0;
+    margin-right: 0;
+    color: #555;
+    font-style: italic;
+  }
+
+  .analysis-text code {
+    font-family: 'Courier New', Courier, monospace;
+    background-color: #f5f5f5;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }
+
+  .analysis-text pre {
+    background-color: #f5f5f5;
+    padding: 1em;
+    border-radius: 5px;
+    overflow-x: auto;
+  }
+
+  .analysis-text strong {
+    font-weight: 600;
+  }
+
+  .analysis-text em {
+    font-style: italic;
   }
   
   .placeholder-message {
