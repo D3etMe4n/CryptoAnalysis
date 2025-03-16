@@ -417,10 +417,10 @@ def run_ai_model(df, period_desc):
         print(f"Using device: {device}")
         
         # Load model and tokenizer
-        tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-large")
-        model = AutoModelForSeq2SeqLM.from_pretrained(
-            "google/flan-t5-large",
-            trust_remote_code=True,
+        tokenizer = AutoTokenizer.from_pretrained("unsloth/DeepSeek-R1-Distill-Qwen-1.5B-bnb-4bit")
+        model = AutoModelForCausalLM.from_pretrained(
+            "unsloth/DeepSeek-R1-Distill-Qwen-1.5B-bnb-4bit",
+            # trust_remote_code=True,
             torch_dtype=torch.float16
         ).to(device)
         
@@ -489,8 +489,8 @@ def run_ai_model(df, period_desc):
         with torch.no_grad():
             outputs = model.generate(
                 inputs["input_ids"],
-                max_length=4096,  
-                min_length=1024,
+                max_length=1024,  
+                min_length=256,
                 num_beams=5,
                 temperature=0.7,
                 no_repeat_ngram_size=3,
