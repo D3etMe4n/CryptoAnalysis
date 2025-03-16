@@ -8,7 +8,7 @@ from datetime import datetime
 from pydantic import BaseModel
 from datetime import datetime, timedelta
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForSeq2SeqLM
 import pandas as pd
 import numpy as np
 import gc
@@ -307,6 +307,7 @@ async def price_summary(timeframe: str = "7d"):
 
 class AnalysisRequest(BaseModel):
     timeframe: str = "7d"  # Default to 7 days
+    end_date: Optional[str] = None
     
 class AnalysisResponse(BaseModel):
     analysis: str
@@ -416,9 +417,9 @@ def run_ai_model(df, period_desc):
         print(f"Using device: {device}")
         
         # Load model and tokenizer
-        tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B")
-        model = AutoModelForCausalLM.from_pretrained(
-            "Qwen/Qwen2.5-0.5B",
+        tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-large")
+        model = AutoModelForSeq2SeqLM.from_pretrained(
+            "google/flan-t5-large",
             trust_remote_code=True,
             torch_dtype=torch.float16
         ).to(device)
@@ -488,9 +489,13 @@ def run_ai_model(df, period_desc):
         with torch.no_grad():
             outputs = model.generate(
                 inputs["input_ids"],
-                max_length=2048,  
-                num_beams=3,
-                early_stopping=True
+                max_length=4096,  
+                min_length=1024,
+                num_beams=5,
+                temperature=0.7,
+                no_repeat_ngram_size=3,
+                early_stopping=True,
+                repetition_penalty=1.2
             )
         
         # Decode the output and remove the input prompt
