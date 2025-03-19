@@ -41,13 +41,9 @@ The Java component is responsible for downloading historical data from Binance a
 ```bash
 
 # Navigate to the project root directory
-
 cd  CryptoAnalysis
 
-  
-
 # Build the project with Maven
-
 mvn  clean  install
 
 ```
@@ -59,7 +55,6 @@ mvn  clean  install
 ```bash
 
 # Run the main Java application
-
 mvn compile exec:java
 ```
 
@@ -96,25 +91,15 @@ The backend is built with FastAPI and provides APIs for retrieving Bitcoin price
 ```bash
 
 # Navigate to the backend directory
-
 cd  CryptoAnalysis/backend
 
-  
-
 # Create a virtual environment (optional but recommended)
-
 python  -m  venv  venv
-
 source  venv/bin/activate  # On Windows: venv\Scripts\activate
 
-  
-
 # Install dependencies with PyTorch CUDA support
-
 pip  install  fastapi  uvicorn  duckdb  pandas  numpy pydantic 
-
 pip  install  torch  torchvision  torchaudio  --index-url  https://download.pytorch.org/whl/cu118
-
 pip  install  transformers
 
 ```
@@ -126,13 +111,9 @@ pip  install  transformers
 ```bash
 
 # Navigate to the backend directory
-
 cd  CryptoAnalysis/backend
 
-  
-
 # Start the FastAPI server
-
 uvicorn  main:app  --host  0.0.0.0  --port  8000
 
 ```
@@ -176,13 +157,9 @@ The frontend is built with React and provides interactive charts and AI analysis
 ```bash
 
 # Navigate to the React app directory
-
 cd  CryptoAnalysis/my-chart-app
 
-  
-
 # Install dependencies
-
 npm  install
 
 ```
@@ -194,63 +171,39 @@ npm  install
 ```bash
 
 # Navigate to the React app directory
-
 cd  CryptoAnalysis/my-chart-app
 
-  
-
 # Start the development server
-
 npm  start
 
 ```
 
-  
-
 The frontend application will now be running at http://localhost:3000.
-
-  
 
 ## Project Structure
 
-  
+
 
 ```
 
 CryptoAnalysis/
 
 ├── backend/ # Python FastAPI backend
-
 │ └── main.py # Main backend application file
-
 ├── duckdb/ # DuckDB database storage
-
 │ └── binancedata.db # Bitcoin price database
-
 ├── my-chart-app/ # React frontend application
-
 │ ├── public/ # Public assets
-
 │ └── src/ # React source code
-
 │ ├── components/ # React components
-
 │ └── App.js # Main React application
-
 ├── src/ # Java source code
-
 │ ├── main/
-
 │ │ └── java/
-
 │ │ ├── Main.java # Entry point
-
 │ │ ├── BinanceDataDownloader.java # Data downloader
-
 │ │ └── SparkPreprocessor.java # Data processor
-
 │ └── test/
-
 └── pom.xml # Maven configuration
 
 ```
