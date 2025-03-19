@@ -18,7 +18,11 @@ This project consists of three main components:
 
 3.  **React Frontend**: Visualizes Bitcoin price data with interactive charts and displays AI-generated market insights
 
-  
+  ### Architecture Diagram
+
+The following diagram illustrates how the different components of the system interact:
+
+![CryptoAnalysis Architecture](./diagrams/architecture.svg)
 
 ## 1. Setting Up and Running the Java Component
 
@@ -185,7 +189,6 @@ The frontend application will now be running at http://localhost:3000.
 
 
 ```
-
 CryptoAnalysis/
 
 ├── backend/ # Python FastAPI backend
@@ -205,7 +208,6 @@ CryptoAnalysis/
 │ │ └── SparkPreprocessor.java # Data processor
 │ └── test/
 └── pom.xml # Maven configuration
-
 ```
 
   
